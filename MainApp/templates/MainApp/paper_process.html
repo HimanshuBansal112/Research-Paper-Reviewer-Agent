@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Add ratings to Research Paper of AI and Computer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        table {
+            width: 90%;
+            border-collapse: collapse;
+            margin: 0 auto;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f6f8;
+        }
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .center {
+            text-align: center;
+        }
+        .checkbox-col {
+            width: 40px;
+        }
+        .btn-submit {
+            margin-top: 15px;
+            padding: 10px 18px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-submit:hover {
+            background-color: #0056b3;
+        }
+		.btn-submit:disabled {
+			pointer-events: none;
+			background-color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;">Add ratings to Research Paper of AI and Computer</h1>
+    <h2 style="text-align:center;">Paper List</h2>
+	<table id="paper_table">
+		<thead>
+			<tr>
+				<th class="checkbox-col center">
+					<input type="checkbox" id="select-all" onclick="toggleAll(this)">
+				</th>
+				<th>Title</th>
+				<th>Authors</th>
+				<th>Published</th>
+				<th>Pdf</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for paper in papers %}
+			<tr>
+				<td class="center">
+					<input type="checkbox" name="selected" value="{{ person.name }}">
+				</td>
+				<td>{{ paper.title }}</td>
+				<td>
+				  <span>
+					{% for author in paper.authors|slice:":3" %}
+					  {{ author }}{% if not forloop.last %}, {% endif %}
+					{% endfor %}
+				  </span>
+				  {% if paper.authors|length > 3 %}
+					<span class="more-authors" style="display:none;">
+					  , {% for author in paper.authors|slice:"3:" %}
+						  {{ author }}{% if not forloop.last %}, {% endif %}
+						{% endfor %}
+					</span>
+					<a href="#" class="toggle-authors" onclick="toggleAuthors(this); return false;">Show more</a>
+				  {% endif %}
+				</td>
+				<td>{{ paper.published }}</td>
+				<td><a href="{{ paper.pdf }}">{{ paper.pdf }}</a></td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="3" class="center">No paper found.</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<div style="text-align:center;">
+		<button id="process_paper" class="btn-submit" onclick="process()">Submit</button>
+		<p>Rows will get removed when they are processed</p>
+		<p id="error"></p>
+	</div>
+
+    <script>
+        function toggleAll(source) {
+            const checkboxes = document.querySelectorAll('input[name="selected"]');
+            for (let cb of checkboxes) {
+                cb.checked = source.checked;
+            }
+        }
+		function toggleAuthors(link) {
+			const more = link.previousElementSibling;
+			if (more.style.display === "none") {
+				more.style.display = "inline";
+				link.textContent = "Show less";
+			} else {
+				more.style.display = "none";
+				link.textContent = "Show more";
+			}
+		}
+		async function process() {
+			const btn = document.getElementById("process_paper");
+			btn.disabled = true;
+			
+			const table = document.getElementById("paper_table");
+			const rows = table.rows;
+			let rowDataList = [];
+			
+			for (let i = 1; i < rows.length; i++) {
+				let checkbox = rows[i].cells[0].querySelector('input[type="checkbox"]');
+				if (checkbox.checked) {
+					rowDataList.push({
+						title: rows[i].cells[1].innerText,
+						pdf: rows[i].cells[4].innerText,
+						rowElement: rows[i]
+					});
+				}
+			}
+			
+			for (const rowData of rowDataList) {
+				try {
+					const response = await fetch("/process", {
+						method: "POST",
+						body: JSON.stringify({ title: rowData.title, pdf: rowData.pdf }),
+						headers: {
+							"Content-Type": "application/json",
+							"X-CSRFToken": getCookie("csrftoken")
+						}
+					});
+
+					const data = await response.json();
+
+					if (data.done) {
+						rowData.rowElement.remove();
+					} else {
+						document.getElementById("error").innerText = "Failed row: " + rowData.title + ". Reason is " + data.message;
+						break;
+					}
+				} catch (error) {
+					document.getElementById("error").innerText = "Error: " + error;
+					break;
+				}
+			}
+			btn.disabled = false;
+		}
+
+		// Helper for Django CSRF token
+		function getCookie(name) {
+			let cookieValue = null;
+			if (document.cookie && document.cookie !== "") {
+				const cookies = document.cookie.split(";");
+				for (let cookie of cookies) {
+					cookie = cookie.trim();
+					if (cookie.startsWith(name + "=")) {
+						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+						break;
+					}
+				}
+			}
+			return cookieValue;
+		}
+
+    </script>
+</body>
+</html>

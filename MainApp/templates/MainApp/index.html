@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Paper Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        a.button {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            color: #fff;
+            background-color: #007BFF;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        a.button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        p.note {
+            margin-top: 50px;
+            color: #666;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Research Paper Tool</h1>
+    
+    <a href="/fetch" class="button">Fetch & Process Research Paper</a>
+    <a href="/display" class="button">Display Processed Research Paper</a>
+
+    <p class="note">Select an action above to get started.</p>
+</body>
+</html>

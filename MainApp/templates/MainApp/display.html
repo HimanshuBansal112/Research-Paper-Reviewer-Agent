@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Display info about processed Research Paper of AI and Computer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        table {
+            width: 90%;
+            border-collapse: collapse;
+            margin: 0 auto;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #f4f6f8;
+        }
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .center {
+            text-align: center;
+        }
+        .checkbox-col {
+            width: 40px;
+        }
+        .btn-submit {
+            margin-top: 15px;
+            padding: 10px 18px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-submit:hover {
+            background-color: #0056b3;
+        }
+        .btn-submit:disabled {
+            pointer-events: none;
+            background-color: #007bff;
+        }
+        .btn-summary {
+            padding: 6px 10px;
+            background-color: #28a745;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .btn-summary:hover {
+            background-color: #218838;
+        }
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .pagination a {
+            margin: 0 6px;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #007bff;
+        }
+        .pagination a.active {
+            font-weight: bold;
+            background-color: #007bff;
+            color: white;
+        }
+        .pagination a:hover {
+            background-color: #e9ecef;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 60%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            max-height: 70%;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 10px;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .close {
+            color: #aaa;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;">Display info about processed Research Paper of AI and Computer</h1>
+    <h2 style="text-align:center;">Paper List</h2>
+
+    <table id="paper_table">
+		<thead>
+			<tr>
+				<th>Title</th>
+				<th>Authors</th>
+				<th>Published</th>
+				<th>Pdf</th>
+				<th>Rating</th>
+				<th>Genuinity</th>
+				<th>Summary</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for paper in papers %}
+			<tr>
+				<td>{{ paper.title }}</td>
+				<td>
+					<span>
+						{% for author in paper.authors|slice:":3" %}
+							{{ author }}{% if not forloop.last %}, {% endif %}
+						{% endfor %}
+					</span>
+					{% if paper.authors|length > 3 %}
+					<span class="more-authors" style="display:none;">
+						, {% for author in paper.authors|slice:"3:" %}
+							{{ author }}{% if not forloop.last %}, {% endif %}
+						{% endfor %}
+					</span>
+					<a href="#" class="toggle-authors" onclick="toggleAuthors(this); return false;">Show more</a>
+					{% endif %}
+				</td>
+				<td>{{ paper.published }}</td>
+				<td><a href="{{ paper.pdf }}" target="_blank">PDF</a></td>
+				<td>{{ paper.rating }}</td>
+				<td>{{ paper.genuinity }}</td>
+				<td class="center">
+					<button type="button" class="btn-summary" 
+							onclick="openModal('{{ paper.title|escapejs }}', '{{ paper.summary|linebreaksbr|escapejs }}')">View</button>
+				</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="8" class="center">No paper found.</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+    <div class="pagination">
+        {% if papers.has_previous %}
+            <a href="?page=1">&laquo; First</a>
+            <a href="?page={{ papers.previous_page_number }}">Previous</a>
+        {% endif %}
+
+        {% for num in papers.paginator.page_range %}
+            {% if papers.number == num %}
+                <a class="active">{{ num }}</a>
+            {% elif num > papers.number|add:'-3' and num < papers.number|add:'3' %}
+                <a href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if papers.has_next %}
+            <a href="?page={{ papers.next_page_number }}">Next</a>
+            <a href="?page={{ papers.paginator.num_pages }}">Last &raquo;</a>
+        {% endif %}
+    </div>
+
+    <!-- Modal -->
+    <div id="summaryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Paper Summary</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        function toggleAll(source) {
+            let checkboxes = document.querySelectorAll('input[name="selected"]');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        }
+        function toggleAuthors(link) {
+            let more = link.previousElementSibling;
+            if (more.style.display === "none") {
+                more.style.display = "inline";
+                link.textContent = "Show less";
+            } else {
+                more.style.display = "none";
+                link.textContent = "Show more";
+            }
+        }
+        function openModal(title, summary) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalBody').innerHTML  = summary;
+            document.getElementById('summaryModal').style.display = "block";
+        }
+        function closeModal() {
+            document.getElementById('summaryModal').style.display = "none";
+        }
+        window.onclick = function(event) {
+            let modal = document.getElementById('summaryModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
