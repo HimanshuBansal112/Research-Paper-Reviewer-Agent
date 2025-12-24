@@ -54,7 +54,7 @@ def process(request):
                     break
         
         try:
-            agent(paper_index)
+            agent(paper_index, title)
             return JsonResponse({"done": True})
         except Exception as e:
             return JsonResponse({"done": False, "message": str(e)})

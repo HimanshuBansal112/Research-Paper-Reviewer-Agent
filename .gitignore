@@ -1,6 +1,8 @@
 *.pyc
 __pycache__/
+venv/
 db.sqlite3
+agent_log.json
 .env
 *.sqlite3
 **/migrations/*

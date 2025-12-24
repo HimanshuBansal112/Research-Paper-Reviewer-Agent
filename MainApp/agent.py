@@ -1,3 +1,7 @@
+import os
+import json
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from typing import Annotated
 from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, START, END
@@ -26,6 +30,7 @@ def add_about_paper(index: int, rating: float, genuinity: float, summary: str):
     if not(Paper_Output_List.instance().add(Paper_Output(paper = papers.papers[index], rating = rating, genuinity = genuinity, summary = summary))):
         raise Exception("Paper already exist")
 
+ist = ZoneInfo("Asia/Kolkata")
 tools = [add_about_paper]
 llm_with_tools = llm.bind_tools(tools)
 
@@ -35,7 +40,14 @@ class State(TypedDict):
 def chatbot(state: State):
     return {"messages": [llm_with_tools.invoke(state["messages"])]}
 
-def agent(index):
+def serialize_message(m):
+    return {
+        "role": getattr(m, "type", m.__class__.__name__),
+        "content": m.content,
+        "additional_kwargs": getattr(m, "additional_kwargs", {})
+    }
+
+def agent(index, title):
     builder = StateGraph(State)
 
     builder.add_node(chatbot)
@@ -73,6 +85,22 @@ def agent(index):
             "content": get_paper(index)
         }]
     })
+    
+    if os.path.exists("agent_log.json"):
+        with open("agent_log.json", "r") as file:
+            content = file.read().strip()
+            data = json.loads(content) if content else []
+    else:
+        data = []
+    
+    with open("agent_log.json", "w") as file:
+        data.append({
+            "timestamp": datetime.now(ist).isoformat(),
+            "paper_index": f"{index} will be the index if successful and non-reversed",
+            "paper_title": title,
+            "messages": [serialize_message(m) for m in state["messages"]]
+        })
+        json.dump(data, file, indent=2)
     
     if init_len == len(Paper_Output_List.instance().get_papers()):
         raise Exception("Chatbot or Database failed to add paper")
