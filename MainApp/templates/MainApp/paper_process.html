@@ -71,7 +71,7 @@
 			{% for paper in papers %}
 			<tr>
 				<td class="center">
-					<input type="checkbox" name="selected" value="{{ person.name }}">
+					<input type="checkbox" name="selected" value="{{ paper.name }}">
 				</td>
 				<td>{{ paper.title }}</td>
 				<td>
@@ -146,6 +146,7 @@
 				try {
 					const response = await fetch("/process", {
 						method: "POST",
+						credentials: "same-origin",
 						body: JSON.stringify({ title: rowData.title, pdf: rowData.pdf }),
 						headers: {
 							"Content-Type": "application/json",

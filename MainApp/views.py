@@ -3,6 +3,7 @@ import json
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from .shared_variable import llm, papers
 from .models import Paper_Output_List
@@ -12,6 +13,7 @@ from .agent import agent
 def index(request):
     return render(request, "MainApp/index.html")
 
+@ensure_csrf_cookie
 def fetch(request):
     offset = 0
     while len(unread_paper())<10:
