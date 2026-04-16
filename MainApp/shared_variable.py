@@ -1,5 +1,6 @@
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
+from django.db import connection
 
 from .paper import Paper_List
 from .models import Paper_Output_List
@@ -13,4 +14,8 @@ llm = ChatGoogleGenerativeAI(
 )
 
 papers = Paper_List()
-papers.reset_to_output(Paper_Output_List.instance().get_papers())
+def is_table_available():
+    return 'MainApp_paper_output_list' in connection.introspection.table_names()
+
+if is_table_available():
+    papers.reset_to_output(Paper_Output_List.instance().get_papers())
