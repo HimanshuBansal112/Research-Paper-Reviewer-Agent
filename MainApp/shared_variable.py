@@ -7,7 +7,7 @@ from .models import Paper_Output_List
 
 api_key = os.getenv("GOOGLE_API_KEY")
 llm = ChatGoogleGenerativeAI(
-    model= "gemini-2.5-flash",
+    model= "gemini-3.5-flash",
     temperature=1.0,
     max_retries=2,
     google_api_key=api_key,
