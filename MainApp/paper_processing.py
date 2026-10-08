@@ -40,10 +40,6 @@ def fetch_papers(offset: int):
         feed = feedparser.parse(query)
     for entry in feed.entries:
         papers.add(Paper(title=entry.title, authors=[author.name for author in entry.authors], published=entry.published, pdf=entry.links[1].href))
-        #if papers.add(Paper(title=entry.title, authors=[author.name for author in entry.authors], published=entry.published, pdf=entry.links[1].href)):
-        #    print("✅ New found")
-        #else:
-        #    print("❌ Existing/old found")
 
 def grab_paper(papers: Paper_List, index: int):
     response = requests.get(papers.papers[index].pdf)
